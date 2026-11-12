@@ -4,9 +4,9 @@ import { CatalogoController } from "../controllers/catalogo.controller.js";
 const router = Router();
 const controller = new CatalogoController();
 
-router.get("/produtos", controller.listar);
-router.get("/produtos/:id", controller.buscarPorId);
-router.post("/produtos", controller.criar);
-router.post("/produtos/:id/reservas", controller.reservar);
+router.get("/produtos", (req, res) => controller.listar(req, res));
+router.get("/produtos/:id", (req, res) => controller.buscarPorId(req, res));
+router.post("/produtos", (req, res) => controller.criar(req, res));
+router.post("/produtos/:id/reservas", (req, res) => controller.reservar(req, res));
 
 export default router;

@@ -1,27 +1,34 @@
-import { produtos } from "../data/produtos.data.js";
-import { Produto, ReservaEstoqueResponse } from "../types/produto.types.js";
+import { ProdutosRepository } from "../repositories/produtos.repository.js";
+
+const repository = new ProdutosRepository();
 
 export class CatalogoService {
-  listarTodos(): Produto[] {
-    return produtos;
+  async listarTodos() {
+    const produtos = await repository.listar();
+    return produtos.map((p) => ({
+      ...p,
+      preco: Number(p.preco)
+    }));
   }
 
-  buscarPorId(id: number): Produto | undefined {
-    return produtos.find((p) => p.id === id);
-  }
-
-  criar(dados: { nome: string; preco: number; estoque: number }): Produto {
-    const novoProduto: Produto = {
-      id: produtos.length > 0 ? Math.max(...produtos.map((p) => p.id)) + 1 : 1,
-      nome: dados.nome,
-      preco: dados.preco,
-      estoque: dados.estoque
+  async buscarPorId(id: number) {
+    const produto = await repository.buscarPorId(id);
+    if (!produto) return null;
+    return {
+      ...produto,
+      preco: Number(produto.preco)
     };
-    produtos.push(novoProduto);
-    return novoProduto;
   }
 
-  reservarEstoque(id: number, quantidade: number): { status: number; data: ReservaEstoqueResponse | { mensagem: string; codigo: string } } {
+  async criar(dados: { nome: string; preco: number; estoque: number }) {
+    const produto = await repository.criar(dados);
+    return {
+      ...produto,
+      preco: Number(produto.preco)
+    };
+  }
+
+  async reservarEstoque(id: number, quantidade: number) {
     if (!quantidade || quantidade <= 0 || !Number.isInteger(quantidade)) {
       return {
         status: 400,
@@ -29,7 +36,7 @@ export class CatalogoService {
       };
     }
 
-    const produto = this.buscarPorId(id);
+    const produto = await repository.buscarPorId(id);
     if (!produto) {
       return {
         status: 404,
@@ -44,15 +51,15 @@ export class CatalogoService {
       };
     }
 
-    produto.estoque -= quantidade;
+    const produtoAtualizado = await repository.decrementarEstoque(id, quantidade);
 
     return {
       status: 200,
       data: {
-        produtoId: produto.id,
+        produtoId: produtoAtualizado.id,
         reservado: quantidade,
-        precoUnitario: produto.preco,
-        estoqueRestante: produto.estoque
+        precoUnitario: Number(produtoAtualizado.preco),
+        estoqueRestante: produtoAtualizado.estoque
       }
     };
   }

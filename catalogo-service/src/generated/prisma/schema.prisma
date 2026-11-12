@@ -1,0 +1,18 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Produto {
+  id       Int      @id @default(autoincrement())
+  nome     String
+  preco    Decimal  @db.Decimal(10, 2)
+  estoque  Int
+  criadoEm DateTime @default(now())
+}

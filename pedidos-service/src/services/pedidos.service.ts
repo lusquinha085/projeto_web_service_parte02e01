@@ -1,10 +1,12 @@
-import { pedidos } from "../data/pedidos.data.js";
-import { CriarPedidoDTO, Pedido } from "../types/pedido.types.js";
+import { PedidosRepository } from "../repositories/pedidos.repository.js";
+import { CriarPedidoDTO } from "../types/pedido.types.js";
 import { reservarEstoque } from "../clients/catalogo.client.js";
 import { AppError } from "../errors/app.error.js";
 
+const repository = new PedidosRepository();
+
 export class PedidosService {
-  async criarPedido(dados: CriarPedidoDTO): Promise<Pedido> {
+  async criarPedido(dados: CriarPedidoDTO) {
     const { produtoId, quantidade, clienteEmail } = dados;
 
     if (!produtoId || !quantidade || !clienteEmail) {
@@ -15,35 +17,44 @@ export class PedidosService {
       throw new AppError("Quantidade deve ser um inteiro maior que zero", 400, "DADOS_INVALIDOS");
     }
 
+    // Chama catálogo por HTTP antes de gravar no banco
     const reserva = await reservarEstoque(produtoId, quantidade);
+    const precoUnitario = Number(reserva.precoUnitario);
+    const total = Number((precoUnitario * quantidade).toFixed(2));
 
-    const total = Number((reserva.precoUnitario * quantidade).toFixed(2));
-
-    const novoPedido: Pedido = {
-      id: pedidos.length > 0 ? Math.max(...pedidos.map((p) => p.id)) + 1 : 1,
+    const novoPedido = await repository.criar({
       produtoId: reserva.produtoId,
       quantidade,
-      precoUnitario: reserva.precoUnitario,
-      total,
       clienteEmail,
-      status: "confirmado",
-      notificacaoStatus: "nao_enviada",
-      criadoEm: new Date().toISOString()
+      precoUnitario,
+      total
+    });
+
+    return {
+      ...novoPedido,
+      precoUnitario: Number(novoPedido.precoUnitario),
+      total: Number(novoPedido.total)
     };
-
-    pedidos.push(novoPedido);
-    return novoPedido;
   }
 
-  listarTodos(): Pedido[] {
-    return pedidos;
+  async listarTodos() {
+    const pedidos = await repository.listar();
+    return pedidos.map((p) => ({
+      ...p,
+      precoUnitario: Number(p.precoUnitario),
+      total: Number(p.total)
+    }));
   }
 
-  buscarPorId(id: number): Pedido {
-    const pedido = pedidos.find((p) => p.id === id);
+  async buscarPorId(id: number) {
+    const pedido = await repository.buscarPorId(id);
     if (!pedido) {
       throw new AppError("Pedido não encontrado", 404, "PEDIDO_NAO_ENCONTRADO");
     }
-    return pedido;
+    return {
+      ...pedido,
+      precoUnitario: Number(pedido.precoUnitario),
+      total: Number(pedido.total)
+    };
   }
 }

@@ -12,3 +12,18 @@ Em cada uma das pastas (`catalogo-service` e `pedidos-service`), crie o arquivo 
 ### `catalogo-service/.env`
 ```env
 PORT=3001
+
+# Projeto Integrador - Web Services IFMS (Parte 3)
+
+Sistema distribuído de pedidos composto por microsserviços Node.js/Express com persistência relacional via PostgreSQL e Prisma ORM.
+
+## Requisitos de Infraestrutura
+* Node.js v18+
+* Docker e Docker Compose
+
+## Passo a Passo para Subir o Ambiente
+
+### 1. Iniciar o Banco PostgreSQL
+Na raiz do repositório, execute:
+```bash
+docker compose up -d
