@@ -1,4 +1,4 @@
-# Projeto Integrador - Web Services IFMS (Partes 1 e 2)
+# Projeto Integrador - Web Services IFMS (Partes 1, 2 e 3)
 
 Sistema distribuído de pedidos composto por microsserviços em Node.js e Express utilizando TypeScript[cite: 23, 24].
 
